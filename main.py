@@ -28,8 +28,15 @@ def show_homepage():
     #SHow Homepage image
     canvas1.create_image(0, 0, image=homepage_bg, anchor="nw")
 
+    # Entry box for name
+    name_label = Label(root, text="Enter your name:", font=("Georgia", 20), bg="white")
+    name_entry = Entry(root, font=("Georgia", 20))
+
+    name_label.place(x=520, y=310)
+    name_entry.place(x=470, y=360)
+
     #buttons
-    button1 = Button(root, text="Start", borderwidth=0, command=open_question1_window)
+    button1 = Button(root, text="Start", borderwidth=0, highlightthickness=0, command=open_question1_window)
     button2 = Button(root, text="Help", command=open_help_window)
 
     #Display buttons on window
@@ -37,7 +44,7 @@ def show_homepage():
     button2_canvas = canvas1.create_window(100, 10, anchor="nw", window=button2)
 
     # Place buttons
-    button1.place(x=430, y=310)
+    button1.place(x=430, y=450)
     button2.place(x=1030, y=596)
 
     #BUTTON size and font etc...
