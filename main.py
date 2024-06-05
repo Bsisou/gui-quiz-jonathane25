@@ -11,11 +11,11 @@ score = 0
 return_to_quiz_flag = False
 
 #Function to Display the questions and choices
-def show_qustion():
+def show_question():
   global background_photo
   #Get data from quiz_data
   question = quiz_data[current_question]
-  qs_label.config(test=question["Question"])
+  qs_label.config(text=question["question"])
 
   #Show choices on buttons
   choices = question["choices"]
@@ -68,4 +68,43 @@ def next_qestion():
       root.destroy()
 
 #START Quiz (homepage)
-  
+def start_quiz():
+  global current_question
+  global score
+
+  #Resetting the score and question number when user has clicked restart/main menu HERE!!!!
+  score = 0
+  current_question = 0
+
+  # Hide the home window and show quiz window
+  home_window.withdraw()
+  show_question()
+  root.deiconify()
+
+#Function to show the help window
+def show_help(rerturn_to_quiz=False):
+  global return_to_quiz_flag
+  return_to_quiz_flag = return_to_quiz_flag
+  help_window.deiconify()
+  if return_to_quiz:
+    root.withdraw()
+    return_quiz_button.pack(pady=10)
+    return_home_button.pack_forget()
+  else:
+    home_window.withdraw()
+    return_quiz_button.pack_forget()
+    return_home_button.pack(pady=10)
+
+#Function to return to the homepage
+def return_to_home():
+  global current_question, score
+  current_question = 0
+  score = 0
+  help_window.withdraw()
+  setup_home_window()
+  home_window.deiconify()
+
+#Function to return to the quiz from help window
+def return_to_quiz():
+  help_window.withdraw()
+  root.deiconify()
