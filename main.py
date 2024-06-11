@@ -55,7 +55,7 @@ def check_answer(choice):
     next_btn.config(state="normal")
 
 #Move to Next Question
-def next_qestion():
+def next_question():
     global current_question
     current_question += 1
 
@@ -123,7 +123,7 @@ def setup_home_window():
     global background_photo
     background_image = Image.open("homepage.png")
     background_image = background_image.resize((1280,720), Image.LANCZOS)
-    background_photo = Image.Tk.PhotoImage(background_photo)
+    background_photo = ImageTk.PhotoImage(background_image)
     background_label.config(image=background_photo)
     background_label.image = background_photo
 
@@ -136,6 +136,81 @@ style = Style(theme="flatly")
 #Size of the font for question and choice buttons
 style.configure("TLabel", font=("Helvetica", 20))
 style.configure("TButton", font=("Helvetica", 16))
+
+# Make a background label for quiz window HERE
+quiz_background_label = tk.Label(root)
+quiz_background_label.place(relwidth=1, relheight=1)
+
+#Maake a frame to hold question and choice 
+quiz_frame = tk.Frame(root, bg='white', bd=5)
+quiz_frame.place(relx=0.5, rely=0.5, anchor='center')
+
+#Create question label
+qs_label = ttk.Label(
+    quiz_frame,
+    anchor="center",
+    wraplength=500,
+    padding=10
+)
+qs_label.pack(pady=10)
+
+#Make choice buttons
+choice_btns = []
+for i in range(4):
+    button = ttk.Button(
+        quiz_frame,
+        command=lambda i=i: check_answer(i)
+    )
+    button.pack(pady=5)
+    choice_btns.append(button)
+
+#Make feedback label
+feedback_label = ttk.Label(
+    quiz_frame,
+    anchor="center",
+    padding=10
+)
+feedback_label.pack(pady=10)
+
+#Create the score label
+score_label = ttk.Label(
+    quiz_frame,
+    text="score: 0/{}".format(len(quiz_data)),
+    anchor="center",
+    padding=10
+)
+score_label.pack(pady=10)
+
+#Make next button
+next_btn = ttk.Button(
+    quiz_frame,
+    text="Next",
+    command=next_question,
+    state="disabled"
+)
+next_btn.pack(pady=10)
+
+#Make help button on quiz window
+help_button_quiz = tk.Button(root, text="help", font=("Helvetica", 16), command=lambda: show_help(True))
+help_button_quiz.place(relx=0.9, rely=0.1, anchor='center')
+
+#Make return to main menu button from quiz window
+return_main_menu_button = tk.Button(root, text="Return to Main Menu", font=("Helvetica", 16), command=return_to_main_menu_from_quiz)
+return_main_menu_button.place(relx=0.1, rely=0.1, anchor='center')
+
+#Hide quiz window if user clicks on this button
+root.withdraw()
+
+#Mame home window
+home_window = tk.Toplevel()
+home_window.title("Jonny's Flag Quiz")
+home_window.geometry("1280x720")
+
+#Load and display image for home window
+background_label = tk.Label(home_window)
+background_label.place(relwidth=1, relheight=1)
+setup_home_window()
+
 
 # Start the main event loop
 root.mainloop()
