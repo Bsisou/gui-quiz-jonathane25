@@ -2,215 +2,251 @@ import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
 from ttkbootstrap import Style
-from quiz_data import quiz_data
 from PIL import Image, ImageTk
+from quiz_data import quiz_data
 
-#global variables for current question and score
-current_question = 0
-score = 0
-return_to_quiz_flag = False
+class QuizApp:
+    def __init__(self, root):
+        self.root = root
+        self.current_question = 0
+        self.score = 0
+        self.return_to_quiz_flag = False
+        self.background_photo = None
 
-#Function to Display the questions and choices
-def show_question():
-    global background_photo
-    #Get data from quiz_data
-    question = quiz_data[current_question]
-    qs_label.config(text=question["question"])
+        # Initialize the GUI
+        self.setup_gui()
 
-    #Show choices on buttons
-    choices = question["choices"]
-    for i in range(4):
-        choice_btns[i].config(text=choices[i], state="normal")
+    def setup_gui(self):
+        self.root.title("Quiz App")
+        self.root.geometry("1280x720")
+        self.style = Style(theme="flatly")
 
-    #Clear feedback(correct or wrong) Disable Next button
-    feedback_label.config(text="")
-    next_btn.config(state ="disabled")
+        # Configure the font size for the question and choice buttons
+        self.style.configure("TLabel", font=("Helvetica", 20))
+        self.style.configure("TButton", font=("Helvetica", 16))
 
-    #Update backgroun image
-    background_image = Image.open(question["background"])
-    background_image = background_image.resize((1280, 720), Image.LANCZOS)
-    background_photo = ImageTk.PhotoImage(background_image)
-    quiz_background_label.config(image=background_photo)
-    quiz_background_label.image = background_photo
+        # Create the background label for the quiz window
+        self.quiz_background_label = tk.Label(self.root)
+        self.quiz_background_label.place(relwidth=1, relheight=1)
 
-#Function to check the answer the user has selected and provide the user with feedback
-def check_answer(choice):
-    global score
-    #Get the current question from quiz_data.py
-    question = quiz_data[current_question]
-    selected_choice = choice_btns[choice].cget("text")
+        # Create a frame to hold the question and choice widgets
+        self.quiz_frame = tk.Frame(self.root, bg='white', bd=5)
+        self.quiz_frame.place(relx=0.5, rely=0.5, anchor='center')
 
-    #Check if users selected answer matches with the correct answer
-    if selected_choice == question["answer"]:
-        #Update score and show
-        score +=1
-        score_label.config(text="Score: {}/{}".format(score, len(quiz_data)))
-        feedback_lbael.config(text="Correct!", foreground="green")
-    else:
-        feedback_label.config(text="Incorrect!", foreground="red")
+        # Create the question label
+        self.qs_label = ttk.Label(
+            self.quiz_frame,
+            anchor="center",
+            wraplength=500,
+            padding=10
+        )
+        self.qs_label.pack(pady=10)
 
-    #Disable all the choice buttons and only allow the next button 
-    for button in choice_btns:
-        button.config(state="disabled")
-    next_btn.config(state="normal")
+        # Create the choice buttons
+        self.choice_btns = []
+        for i in range(4):
+            button = ttk.Button(
+                self.quiz_frame,
+                command=lambda i=i: self.check_answer(i)
+            )
+            button.pack(pady=5)
+            self.choice_btns.append(button)
 
-#Move to Next Question
-def next_question():
-    global current_question
-    current_question += 1
+        # Create the feedback label
+        self.feedback_label = ttk.Label(
+            self.quiz_frame,
+            anchor="center",
+            padding=10
+        )
+        self.feedback_label.pack(pady=10)
 
-    if current_question < len(quiz_data):
-        #If there is more question show them
-        show_question()
-    else:
-        #if all questions have been answered by user show the final score and finish/end the quiz
-        messagebox.showinfo("Quiz Completed", "Quiz Completed! Fnal Score: {}/{}".format(score, len(quiz_data)))
-        root.destroy()
+        # Create the score label
+        self.score_label = ttk.Label(
+            self.quiz_frame,
+            text="Score: 0/{}".format(len(quiz_data)),
+            anchor="center",
+            padding=10
+        )
+        self.score_label.pack(pady=10)
 
-#START Quiz (homepage)
-def start_quiz():
-    global current_question
-    global score
+        # Create the next button
+        self.next_btn = ttk.Button(
+            self.quiz_frame,
+            text="Next",
+            command=self.next_question,
+            state="disabled"
+        )
+        self.next_btn.pack(pady=10)
 
-    #Resetting the score and question number when user has clicked restart/main menu HERE!!!!
-    score = 0
-    current_question = 0
+        # Create the help button for the quiz window
+        self.help_button_quiz = tk.Button(self.root, text="Help", font=("Helvetica", 16), command=lambda: self.show_help(True))
+        self.help_button_quiz.place(relx=0.9, rely=0.1, anchor='center')
 
-    # Hide the home window and show quiz window
-    home_window.withdraw()
-    show_question()
-    root.deiconify()
+        # Create the return to main menu button for the quiz window
+        self.return_main_menu_button = tk.Button(self.root, text="Return to Main Menu", font=("Helvetica", 16), command=self.return_to_main_menu_from_quiz)
+        self.return_main_menu_button.place(relx=0.1, rely=0.1, anchor='center')
 
-#Function to show the help window
-def show_help(rerturn_to_quiz=False):
-    global return_to_quiz_flag
-    return_to_quiz_flag = return_to_quiz_flag
-    help_window.deiconify()
-    if return_to_quiz:
-        root.withdraw()
-        return_quiz_button.pack(pady=10)
-        return_home_button.pack_forget()
-    else:
-        home_window.withdraw()
-        return_quiz_button.pack_forget()
-        return_home_button.pack(pady=10)
+        # Initially hide the quiz window
+        self.root.withdraw()
 
-#Function to return to the homepage
-def return_to_home():
-    global current_question, score
-    current_question = 0
-    score = 0
-    help_window.withdraw()
-    setup_home_window()
-    home_window.deiconify()
+        # Create the home window
+        self.home_window = tk.Toplevel()
+        self.home_window.title("Welcome to the Quiz App")
+        self.home_window.geometry("1280x720")
 
-#Function to return to the quiz from help window
-def return_to_quiz():
-    help_window.withdraw()
-    root.deiconify()
+        # Load and display the background image for the home window
+        self.background_label = tk.Label(self.home_window)
+        self.background_label.place(relwidth=1, relheight=1)
+        self.setup_home_window()
 
-#Function to return to Main Menu from quiz HERE!!!
-def return_to_main_menu_from_quiz():
-    global current_question, score
-    current_question = 0
-    score = 0
-    root.withdraw()
-    setup_homewindow()
-    home_window.deiconify()
+        # Create a frame for the input and start button
+        self.frame = tk.Frame(self.home_window, bg='#ffffff', bd=5)
+        self.frame.place(relx=0.5, rely=0.5, anchor='center')
 
-#Function that will set up the home window
-def setup_home_window():
-    global background_photo
-    background_image = Image.open("homepage.png")
-    background_image = background_image.resize((1280,720), Image.LANCZOS)
-    background_photo = ImageTk.PhotoImage(background_image)
-    background_label.config(image=background_photo)
-    background_label.image = background_photo
+        # Create a label and entry for the user's name
+        self.name_label = tk.Label(self.frame, text="Enter your name:", font=("Helvetica", 20))
+        self.name_label.pack(pady=10)
+        self.name_entry = tk.Entry(self.frame, font=("Helvetica", 20))
+        self.name_entry.pack(pady=10)
 
-#Make the main window for quiz (homepage)
+        # Create the start button
+        self.start_button = tk.Button(self.frame, text="Start Quiz", font=("Helvetica", 20), command=self.start_quiz)
+        self.start_button.pack(pady=10)
+
+        # Create the help button for the home window
+        self.help_button_home = tk.Button(self.home_window, text="Help", font=("Helvetica", 16), command=lambda: self.show_help(False))
+        self.help_button_home.place(relx=0.9, rely=0.9, anchor='center')
+
+        # Create the help window
+        self.help_window = tk.Toplevel()
+        self.help_window.title("Help")
+        self.help_window.geometry("1280x720")
+
+        # Load and display the background image for the help window
+        self.help_background_image = Image.open("help.png")
+        self.help_background_image = self.help_background_image.resize((1280, 720), Image.LANCZOS)
+        self.help_background_photo = ImageTk.PhotoImage(self.help_background_image)
+        self.help_background_label = tk.Label(self.help_window, image=self.help_background_photo)
+        self.help_background_label.place(relwidth=1, relheight=1)
+
+        # Create a frame for the help buttons
+        self.help_frame = tk.Frame(self.help_window, bg='#ffffff', bd=5)
+        self.help_frame.place(relx=0.05, rely=0.05, anchor='nw')
+
+        # Create the return to main menu button
+        self.return_home_button = tk.Button(self.help_frame, text="Return to Main Menu", font=("Helvetica", 20), command=self.return_to_home)
+        self.return_home_button.pack(pady=10)
+
+        # Create the return to quiz button
+        self.return_quiz_button = tk.Button(self.help_frame, text="Return to Quiz", font=("Helvetica", 20), command=self.return_to_quiz)
+        self.return_quiz_button.pack_forget()
+
+        # Initially hide the help window
+        self.help_window.withdraw()
+
+    def show_question(self):
+        # Get the current question from the quiz_data list
+        question = quiz_data[self.current_question]
+        self.qs_label.config(text=question["question"])
+
+        # Display the choices on the buttons
+        choices = question["choices"]
+        for i in range(4):
+            self.choice_btns[i].config(text=choices[i], state="normal")  # Reset button state
+
+        # Clear the feedback label and disable the next button
+        self.feedback_label.config(text="")
+        self.next_btn.config(state="disabled")
+
+        # Update the background image
+        background_image = Image.open(question["background"])
+        background_image = background_image.resize((1280, 720), Image.LANCZOS)
+        self.background_photo = ImageTk.PhotoImage(background_image)
+        self.quiz_background_label.config(image=self.background_photo)
+        self.quiz_background_label.image = self.background_photo
+
+    def check_answer(self, choice):
+        # Get the current question from the quiz_data list
+        question = quiz_data[self.current_question]
+        selected_choice = self.choice_btns[choice].cget("text")
+
+        # Check if the selected choice matches the correct answer
+        if selected_choice == question["answer"]:
+            # Update the score and display it
+            self.score += 1
+            self.score_label.config(text="Score: {}/{}".format(self.score, len(quiz_data)))
+            self.feedback_label.config(text="Correct!", foreground="green")
+        else:
+            self.feedback_label.config(text="Incorrect!", foreground="red")
+
+        # Disable all choice buttons and enable the next button
+        for button in self.choice_btns:
+            button.config(state="disabled")
+        self.next_btn.config(state="normal")
+
+    def next_question(self):
+        self.current_question += 1
+
+        if self.current_question < len(quiz_data):
+            # If there are more questions, show the next question
+            self.show_question()
+        else:
+            # If all questions have been answered, display the final score and end the quiz
+            messagebox.showinfo("Quiz Completed", "Quiz Completed! Final score: {}/{}".format(self.score, len(quiz_data)))
+            self.root.destroy()
+
+    def start_quiz(self):
+        # Reset score and question index
+        self.score = 0
+        self.current_question = 0
+
+        # Hide the home window and show the quiz window
+        self.home_window.withdraw()
+        self.show_question()
+        self.root.deiconify()
+
+    def show_help(self, return_to_quiz=False):
+        self.return_to_quiz_flag = return_to_quiz
+        self.help_window.deiconify()
+        if return_to_quiz:
+            self.root.withdraw()
+            self.return_quiz_button.pack(pady=10)
+            self.return_home_button.pack_forget()
+        else:
+            self.home_window.withdraw()
+            self.return_quiz_button.pack_forget()
+            self.return_home_button.pack(pady=10)
+
+    def return_to_home(self):
+        self.current_question = 0
+        self.score = 0
+        self.help_window.withdraw()
+        self.setup_home_window()
+        self.home_window.deiconify()
+
+    def return_to_quiz(self):
+        self.help_window.withdraw()
+        self.root.deiconify()
+
+    def return_to_main_menu_from_quiz(self):
+        self.current_question = 0
+        self.score = 0
+        self.root.withdraw()
+        self.setup_home_window()
+        self.home_window.deiconify()
+
+    def setup_home_window(self):
+        background_image = Image.open("homepage.png")
+        background_image = background_image.resize((1280, 720), Image.LANCZOS)
+        self.background_photo = ImageTk.PhotoImage(background_image)
+        self.background_label.config(image=self.background_photo)
+        self.background_label.image = self.background_photo
+
+# Create the main window
 root = tk.Tk()
-root.title("Quiz App")
-root.geometry("1280x720")
-style = Style(theme="flatly")
 
-#Size of the font for question and choice buttons
-style.configure("TLabel", font=("Helvetica", 20))
-style.configure("TButton", font=("Helvetica", 16))
-
-# Make a background label for quiz window HERE
-quiz_background_label = tk.Label(root)
-quiz_background_label.place(relwidth=1, relheight=1)
-
-#Maake a frame to hold question and choice 
-quiz_frame = tk.Frame(root, bg='white', bd=5)
-quiz_frame.place(relx=0.5, rely=0.5, anchor='center')
-
-#Create question label
-qs_label = ttk.Label(
-    quiz_frame,
-    anchor="center",
-    wraplength=500,
-    padding=10
-)
-qs_label.pack(pady=10)
-
-#Make choice buttons
-choice_btns = []
-for i in range(4):
-    button = ttk.Button(
-        quiz_frame,
-        command=lambda i=i: check_answer(i)
-    )
-    button.pack(pady=5)
-    choice_btns.append(button)
-
-#Make feedback label
-feedback_label = ttk.Label(
-    quiz_frame,
-    anchor="center",
-    padding=10
-)
-feedback_label.pack(pady=10)
-
-#Create the score label
-score_label = ttk.Label(
-    quiz_frame,
-    text="score: 0/{}".format(len(quiz_data)),
-    anchor="center",
-    padding=10
-)
-score_label.pack(pady=10)
-
-#Make next button
-next_btn = ttk.Button(
-    quiz_frame,
-    text="Next",
-    command=next_question,
-    state="disabled"
-)
-next_btn.pack(pady=10)
-
-#Make help button on quiz window
-help_button_quiz = tk.Button(root, text="help", font=("Helvetica", 16), command=lambda: show_help(True))
-help_button_quiz.place(relx=0.9, rely=0.1, anchor='center')
-
-#Make return to main menu button from quiz window
-return_main_menu_button = tk.Button(root, text="Return to Main Menu", font=("Helvetica", 16), command=return_to_main_menu_from_quiz)
-return_main_menu_button.place(relx=0.1, rely=0.1, anchor='center')
-
-#Hide quiz window if user clicks on this button
-root.withdraw()
-
-#Mame home window
-home_window = tk.Toplevel()
-home_window.title("Jonny's Flag Quiz")
-home_window.geometry("1280x720")
-
-#Load and display image for home window
-background_label = tk.Label(home_window)
-background_label.place(relwidth=1, relheight=1)
-setup_home_window()
-
+# Create the QuizApp instance
+quiz_app = QuizApp(root)
 
 # Start the main event loop
 root.mainloop()
