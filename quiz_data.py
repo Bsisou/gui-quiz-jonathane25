@@ -57,7 +57,7 @@ quiz_data = [
      "question": "What country is this?",
      "choices": ["Hungary", "Estonia", "Germany", "Belgium"],
      "answer": "Belgium",
-     "background": "bg10.png"
+    "background": "bg10.png"
   },
 
 ]

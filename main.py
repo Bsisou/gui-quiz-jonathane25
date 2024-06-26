@@ -4,6 +4,7 @@ from tkinter import ttk
 from ttkbootstrap import Style
 from PIL import Image, ImageTk
 from quiz_data import quiz_data
+import re
 
 class QuizApp:
     def __init__(self, root):
@@ -79,19 +80,19 @@ class QuizApp:
         self.next_btn.pack(pady=10)
 
         # Create the help button for the quiz window
-        self.help_button_quiz = tk.Button(self.root, text="Help", font=("Helvetica", 16), command=lambda: self.show_help(True))
-        self.help_button_quiz.place(relx=0.9, rely=0.1, anchor='center')
+        self.help_button_quiz = tk.Button(self.root, text="Help", font=("Helvetica", 18), command=lambda: self.show_help(True))
+        self.help_button_quiz.place(relx=0.89, rely=0.08, anchor='center', width=240, height=60)
 
         # Create the return to main menu button for the quiz window
         self.return_main_menu_button = tk.Button(self.root, text="Return to Main Menu", font=("Helvetica", 16), command=self.return_to_main_menu_from_quiz)
-        self.return_main_menu_button.place(relx=0.1, rely=0.1, anchor='center')
+        self.return_main_menu_button.place(relx=0.02, rely=0.04, anchor='nw', width=240, height=60)
 
         # Initially hide the quiz window
         self.root.withdraw()
 
         # Create the home window
         self.home_window = tk.Toplevel()
-        self.home_window.title("Welcome to the Quiz App")
+        self.home_window.title("Jonny's Flag Country Quiz")
         self.home_window.geometry("1280x720")
 
         # Load and display the background image for the home window
@@ -106,6 +107,7 @@ class QuizApp:
         # Create a label and entry for the user's name
         self.name_label = tk.Label(self.frame, text="Enter your name:", font=("Helvetica", 20))
         self.name_label.pack(pady=10)
+       
         self.name_entry = tk.Entry(self.frame, font=("Helvetica", 20))
         self.name_entry.pack(pady=10)
 
@@ -114,7 +116,7 @@ class QuizApp:
         self.start_button.pack(pady=10)
 
         # Create the help button for the home window
-        self.help_button_home = tk.Button(self.home_window, text="Help", font=("Helvetica", 16), command=lambda: self.show_help(False))
+        self.help_button_home = tk.Button(self.home_window, text="Help", font=("Helvetica", 32), command=lambda: self.show_help(False))
         self.help_button_home.place(relx=0.9, rely=0.9, anchor='center')
 
         # Create the help window
@@ -133,9 +135,9 @@ class QuizApp:
         self.help_frame = tk.Frame(self.help_window, bg='#ffffff', bd=5)
         self.help_frame.place(relx=0.05, rely=0.05, anchor='nw')
 
-        # Create the return to main menu button
+        # Create the return to main menu button for help page from homewindow
         self.return_home_button = tk.Button(self.help_frame, text="Return to Main Menu", font=("Helvetica", 20), command=self.return_to_home)
-        self.return_home_button.pack(pady=10)
+        self.return_home_button.place(relx=0.02, rely=0.04, anchor='nw', width=140, height=60)
 
         # Create the return to quiz button
         self.return_quiz_button = tk.Button(self.help_frame, text="Return to Quiz", font=("Helvetica", 20), command=self.return_to_quiz)
@@ -196,6 +198,14 @@ class QuizApp:
             self.root.destroy()
 
     def start_quiz(self):
+        #Get the users name that they entered before
+        name = self.name_entry.get()
+
+        # Check if the name passes the rules (only letters and numbers)
+        if not re.match("^[a-zA-Z0-9]{3,12}$", name):
+            self.show_invalid_name_message()
+            return
+    
         # Reset score and question index
         self.score = 0
         self.current_question = 0
@@ -205,6 +215,18 @@ class QuizApp:
         self.show_question()
         self.root.deiconify()
 
+    def show_invalid_name_message(self):
+        #Get screen width and height
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+
+        #work out centeer of the screen
+        x = (screen_width - 300) // 2
+        y = (screen_height - 150) // 2
+
+        #Make te message box in middle of sreen.
+        messagebox.showerror("Invalid Name", "Please enter a Valid Name - Only Letters and Numbers are allowed, and it must be between 3 and 12 characters. Press OK to continue", parent=self.home_window)
+    
     def show_help(self, return_to_quiz=False):
         self.return_to_quiz_flag = return_to_quiz
         self.help_window.deiconify()
