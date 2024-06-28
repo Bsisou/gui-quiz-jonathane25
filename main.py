@@ -199,10 +199,10 @@ class QuizApp:
 
     def start_quiz(self):
         #Get the users name that they entered before
-        name = self.name_entry.get()
+        name = self.name_entry.get().strip()
 
-        # Check if the name passes the rules (only letters and numbers)
-        if not re.match("^(?=.*[a-zA-Z])[a-zA-Z0-9]{3,12}$", name):
+        # Check if the name passes the rules (only letters and between 3 to 12 characters)
+        if not re.match("^(?=.*[a-zA-Z].*[a-zA-Z].*[a-zA-Z])[a-zA-Z0-9]{3,12}$", name):
             self.show_invalid_name_message()
             return
     
@@ -225,8 +225,12 @@ class QuizApp:
         y = (screen_height - 150) // 2
 
         #Make te message box in middle of sreen.
-        messagebox.showerror("Invalid Name", "Please enter a valid name: Only letters and numbers are allowed, it must be between 3 and 12 characters, and contain at least one letter. Press OK to continue", parent=self.home_window)   
-
+        messagebox.showerror(
+            "Invalid Name",
+            "Please enter a valid name: Only letters are allowed, it must contain at least 3 letters and can be up to 12 characters long.",
+            parent=self.home_window
+        )
+        
     def show_help(self, return_to_quiz=False):
         self.return_to_quiz_flag = return_to_quiz
         self.help_window.deiconify()
