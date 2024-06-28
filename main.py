@@ -5,6 +5,7 @@ from ttkbootstrap import Style
 from PIL import Image, ImageTk
 from quiz_data import quiz_data
 import re
+import random
 
 class QuizApp:
     def __init__(self, root):
@@ -13,6 +14,8 @@ class QuizApp:
         self.score = 0
         self.return_to_quiz_flag = False
         self.background_photo = None
+        self.questions_order = []  # List to hold randomized order of questions
+
 
         # Initialize the GUI
         self.setup_gui()
@@ -38,8 +41,8 @@ class QuizApp:
         self.qs_label = ttk.Label(
             self.quiz_frame,
             anchor="center",
-            wraplength=500,
-            padding=10
+            padding=10,
+            font=("Cambria", 23, "bold")  # Set font weight to bold
         )
         self.qs_label.pack(pady=10)
 
@@ -148,7 +151,8 @@ class QuizApp:
 
     def show_question(self):
         # Get the current question from the quiz_data list
-        question = quiz_data[self.current_question]
+        question_index = self.questions_order[self.current_question]
+        question = quiz_data[question_index]
         self.qs_label.config(text=question["question"])
 
         # Display the choices on the buttons
@@ -169,7 +173,8 @@ class QuizApp:
 
     def check_answer(self, choice):
         # Get the current question from the quiz_data list
-        question = quiz_data[self.current_question]
+        question_index = self.questions_order[self.current_question]
+        question = quiz_data[question_index]
         selected_choice = self.choice_btns[choice].cget("text")
 
         # Check if the selected choice matches the correct answer
@@ -202,13 +207,20 @@ class QuizApp:
         name = self.name_entry.get().strip()
 
         # Check if the name passes the rules (only letters and between 3 to 12 characters)
-        if not re.match("^(?=.*[a-zA-Z].*[a-zA-Z].*[a-zA-Z])[a-zA-Z0-9]{3,12}$", name):
+        if not re.match("^[a-zA-Z]{3,12}$", name):
             self.show_invalid_name_message()
             return
     
         # Reset score and question index
         self.score = 0
         self.current_question = 0
+
+        # Reset score label to display initial score
+        self.score_label.config(text="Score: 0/{}".format(len(quiz_data)))
+
+        # Shuffle the order of questions
+        self.questions_order = list(range(len(quiz_data)))
+        random.shuffle(self.questions_order)
 
         # Hide the home window and show the quiz window
         self.home_window.withdraw()
