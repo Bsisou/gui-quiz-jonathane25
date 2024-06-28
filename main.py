@@ -194,8 +194,8 @@ class QuizApp:
             self.show_question()
         else:
             # If all questions have been answered, display the final score and end the quiz
-            messagebox.showinfo("Quiz Completed", "Quiz Completed! Final score: {}/{}".format(self.score, len(quiz_data)))
-            self.root.destroy()
+            self.show_final_score_window()
+
 
     def start_quiz(self):
         #Get the users name that they entered before
@@ -263,6 +263,32 @@ class QuizApp:
         self.background_photo = ImageTk.PhotoImage(background_image)
         self.background_label.config(image=self.background_photo)
         self.background_label.image = self.background_photo
+
+    def show_final_score_window(self):
+        #make the final score window
+        final_score_window = tk.Toplevel(self.root)
+        final_score_window.title("Quiz Completed")
+        final_score_window.geometry("1280x720")
+
+        #Background image for final score window
+        final_score_background_image = Image.open("final_score_background.png")  
+        final_score_background_image = final_score_background_image.resize((1280, 720), Image.LANCZOS)
+        final_score_background_photo = ImageTk.PhotoImage(final_score_background_image)
+        final_score_background_label = tk.Label(final_score_window, image=final_score_background_photo)
+        final_score_background_label.place(relwidth=1, relheight=1)
+        final_score_background_label.image = final_score_background_photo
+
+        #Frame for final score
+        final_score_frame = tk.Frame(final_score_window, bg='white', bd=5)
+        final_score_frame.place(relx=0.5, rely=0.5, anchor='center')
+
+        #Label to display final scopre
+        final_score_label = tk.Label(final_score_frame, text="Quiz Completed! Final score: {}/{}".format(self.score, len(quiz_data)), font=("Helvetica", 24))
+        final_score_label.pack(pady=20)
+
+        #Make the Ok button so user can close the quiz and it resets    
+        ok_button = tk.Button(final_score_frame, text="OK", font=("Helvetica", 20), command=self.root.destroy)
+        ok_button.pack(pady=10)
 
 # Create the main window
 root = tk.Tk()
