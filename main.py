@@ -203,11 +203,11 @@ class QuizApp:
 
 
     def start_quiz(self):
-        #Get the users name that they entered before
-        name = self.name_entry.get().strip()
+        #users name
+        self.user_name = self.name_entry.get().strip()
 
         # Check if the name passes the rules (only letters and between 3 to 12 characters)
-        if not re.match("^[a-zA-Z]{3,12}$", name):
+        if not re.match("^[a-zA-Z]{3,12}$", self.user_name):
             self.show_invalid_name_message()
             return
     
@@ -299,7 +299,7 @@ class QuizApp:
         final_score_frame.place(relx=0.5, rely=0.5, anchor='center')
 
         #Label to display final scopre
-        final_score_label = tk.Label(final_score_frame, text="Quiz Completed! Final score: {}/{}".format(self.score, len(quiz_data)), font=("Helvetica", 24))
+        final_score_label = tk.Label(final_score_frame, text="Well Done {}! Your Final Score is {}/{}".format(self.user_name, self.score, len(quiz_data)), font=("Helvetica", 24))
         final_score_label.pack(pady=20)
 
         #Make the Ok button so user can close the quiz and it resets    
